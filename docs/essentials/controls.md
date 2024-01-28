@@ -195,8 +195,6 @@ Until now, we only used auto-generated controls based on the component for which
   paths={[
     'react/page-story-slots.js.mdx',
     'react/page-story-slots.ts.mdx',
-    'vue/page-story-slots.2.js.mdx',
-    'vue/page-story-slots.2.ts.mdx',
     'vue/page-story-slots.3.js.mdx',
     'vue/page-story-slots.3.ts.mdx',
     'angular/page-story-slots.ts.mdx',
@@ -405,26 +403,6 @@ Consider the following snippet to force required args first:
     'common/component-story-sort-controls.js.mdx',
     'common/component-story-sort-controls.ts.mdx',
   ]}
-/>
-
-<!-- prettier-ignore-end -->
-
-#### Hide NoControls warning
-
-If you don't plan to handle the control args inside your story, you can remove the warning with:
-
-<!-- prettier-ignore-start -->
-
-<CodeSnippets
-  paths={[
-   'angular/button-story-hide-nocontrols-warning.ts.mdx',
-   'web-components/button-story-hide-nocontrols-warning.js.mdx',
-   'web-components/button-story-hide-nocontrols-warning.ts.mdx',
-   'common/button-story-hide-nocontrols-warning.js.mdx',
-   'common/button-story-hide-nocontrols-warning.ts.mdx',
-  ]}
-  usesCsf3
-  csf2Path="essentials/controls#snippet-button-story-hide-nocontrols-warning"
 />
 
 <!-- prettier-ignore-end -->

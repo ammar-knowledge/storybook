@@ -1,6 +1,6 @@
 {
   "name": "@storybook/core-server",
-  "version": "8.0.0-alpha.8",
+  "version": "8.0.0-alpha.15",
   "description": "Storybook framework-agnostic API",
   "keywords": [
     "storybook"
@@ -66,6 +66,7 @@
     "@storybook/docs-mdx": "3.0.0",
     "@storybook/global": "^5.0.0",
     "@storybook/manager": "workspace:*",
+    "@storybook/manager-api": "workspace:*",
     "@storybook/node-logger": "workspace:*",
     "@storybook/preview-api": "workspace:*",
     "@storybook/telemetry": "workspace:*",
@@ -115,6 +116,7 @@
     "entries": [
       "./src/index.ts",
       "./src/presets/common-preset.ts",
+      "./src/presets/common-manager.ts",
       "./src/presets/common-override-preset.ts"
     ],
     "platform": "node"

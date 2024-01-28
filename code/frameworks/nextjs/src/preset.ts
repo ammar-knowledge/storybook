@@ -21,6 +21,8 @@ import { configureNodePolyfills } from './nodePolyfills/webpack';
 import { configureSWCLoader } from './swc/loader';
 import { configureBabelLoader } from './babel/loader';
 import { configureFastRefresh } from './fastRefresh/webpack';
+import { configureAliases } from './aliases/webpack';
+import { logger } from '@storybook/node-logger';
 
 export const addons: PresetProperty<'addons'> = [
   dirname(require.resolve(join('@storybook/preset-react-webpack', 'package.json'))),
@@ -76,9 +78,6 @@ export const previewAnnotations: PresetProperty<'previewAnnotations'> = (
 ) => {
   const nextDir = dirname(require.resolve('@storybook/nextjs/package.json'));
   const result = [...entry, join(nextDir, 'dist/preview.mjs')];
-  if (features?.experimentalNextRSC) {
-    result.unshift(join(nextDir, 'dist/rsc/preview.mjs'));
-  }
   return result;
 };
 
@@ -146,7 +145,6 @@ export const webpackFinal: StorybookConfig['webpackFinal'] = async (baseConfig, 
   const nextConfig = await configureConfig({
     baseConfig,
     nextConfigPath,
-    configDir: options.configDir,
   });
 
   const babelRCPath = join(getProjectRoot(), '.babelrc');
@@ -156,7 +154,7 @@ export const webpackFinal: StorybookConfig['webpackFinal'] = async (baseConfig, 
 
   const isNext14orNewer = semver.gte(nextjsVersion, '14.0.0');
   const useSWC =
-    isNext14orNewer && (nextConfig.experimental?.forceSwcTransforms ?? !hasBabelConfig);
+    isNext14orNewer && (nextConfig.experimental?.forceSwcTransforms || !hasBabelConfig);
 
   configureNextFont(baseConfig, useSWC);
   configureRuntimeNextjsVersionResolution(baseConfig);
@@ -165,18 +163,21 @@ export const webpackFinal: StorybookConfig['webpackFinal'] = async (baseConfig, 
   configureImages(baseConfig, nextConfig);
   configureStyledJsx(baseConfig);
   configureNodePolyfills(baseConfig);
+  configureAliases(baseConfig);
 
   if (isDevelopment) {
     configureFastRefresh(baseConfig);
   }
 
-  if (options.features?.experimentalNextRSC) {
+  if (options.features?.experimentalRSC) {
     configureRSC(baseConfig);
   }
 
   if (useSWC) {
+    logger.info('=> Using SWC as compiler');
     await configureSWCLoader(baseConfig, options, nextConfig);
   } else {
+    logger.info('=> Using Babel as compiler');
     await configureBabelLoader(baseConfig, options);
   }
 
