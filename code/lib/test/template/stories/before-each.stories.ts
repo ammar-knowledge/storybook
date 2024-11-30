@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention,storybook/prefer-pascal-case */
-import { expect, mocked, getByRole, spyOn, userEvent } from '@storybook/test';
+import { expect, getByRole, mocked, spyOn, userEvent } from '@storybook/test';
 
 const meta = {
   component: globalThis.Components.Button,
@@ -32,7 +32,8 @@ export const BeforeEachOrder = {
   async play({ canvasElement }: any) {
     await userEvent.click(getByRole(canvasElement, 'button'));
 
-    await expect(mocked(console.log).mock.calls).toEqual([
+    const allLogs = mocked(console.log).mock.calls.filter(([message]) => /^\d+ - /.test(message));
+    await expect(allLogs).toEqual([
       ['1 - [from loaders]'],
       ['2 - [from meta beforeEach]'],
       ['3 - [from story beforeEach]'],

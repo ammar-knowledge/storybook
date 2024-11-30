@@ -1,20 +1,33 @@
 import React from 'react';
+
+import { fn } from '@storybook/test';
+
 import { ManagerContext } from '@storybook/core/manager-api';
 
-import { Ref } from './Refs';
 import { standardData as standardHeaderData } from './Heading.stories';
+import { IconSymbols } from './IconSymbols';
+import { Ref } from './Refs';
 import { mockDataset } from './mockdata';
 import type { RefType } from './types';
-import { IconSymbols } from './IconSymbols';
+
+const managerContext = {
+  state: { docsOptions: {}, testProviders: {} },
+  api: {
+    on: fn().mockName('api::on'),
+    off: fn().mockName('api::off'),
+    getElements: fn(() => ({})),
+  },
+} as any;
 
 export default {
   component: Ref,
   title: 'Sidebar/Refs',
   excludeStories: /.*Data$/,
   parameters: { layout: 'fullscreen' },
+  globals: { sb_theme: 'side-by-side' },
   decorators: [
     (storyFn: any) => (
-      <ManagerContext.Provider value={{ state: { docsOptions: {} } } as any}>
+      <ManagerContext.Provider value={managerContext}>
         <IconSymbols />
         {storyFn()}
       </ManagerContext.Provider>

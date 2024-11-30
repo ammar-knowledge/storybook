@@ -2,11 +2,13 @@
 export type SupportedFrameworks =
   | 'angular'
   | 'ember'
+  | 'experimental-nextjs-vite'
   | 'html-vite'
   | 'html-webpack5'
   | 'nextjs'
   | 'preact-vite'
   | 'preact-webpack5'
+  | 'react-native-web-vite'
   | 'react-vite'
   | 'react-webpack5'
   | 'server-webpack5'
@@ -18,4 +20,6 @@ export type SupportedFrameworks =
   | 'web-components-vite'
   | 'web-components-webpack5'
   | 'qwik'
-  | 'solid';
+  | 'solid'
+  | 'react-rsbuild'
+  | 'vue3-rsbuild';

@@ -1,30 +1,32 @@
 import type { Mocked } from 'vitest';
-import { describe, it, expect, vi } from 'vitest';
-import {
-  STORY_ARGS_UPDATED,
-  UPDATE_STORY_ARGS,
-  RESET_STORY_ARGS,
-  SET_STORIES,
-  STORY_SPECIFIED,
-  STORY_PREPARED,
-  STORY_INDEX_INVALIDATED,
-  CONFIG_ERROR,
-  SET_INDEX,
-  CURRENT_STORY_WAS_SET,
-  STORY_MISSING,
-  DOCS_PREPARED,
-} from '@storybook/core/core-events';
-import { EventEmitter } from 'events';
-import { global } from '@storybook/global';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { API_StoryEntry } from '@storybook/core/types';
-import { getEventMetadata as getEventMetadataOriginal } from '../lib/events';
+import { global } from '@storybook/global';
 
-import { init as initStories } from '../modules/stories';
-import type Store from '../store';
-import type { API, State } from '../root';
-import { mockEntries, docsEntries, preparedEntries, navigationEntries } from './mockStoriesEntries';
+import {
+  CONFIG_ERROR,
+  CURRENT_STORY_WAS_SET,
+  DOCS_PREPARED,
+  RESET_STORY_ARGS,
+  SET_INDEX,
+  SET_STORIES,
+  STORY_ARGS_UPDATED,
+  STORY_INDEX_INVALIDATED,
+  STORY_MISSING,
+  STORY_PREPARED,
+  STORY_SPECIFIED,
+  UPDATE_STORY_ARGS,
+} from '@storybook/core/core-events';
+
+import { EventEmitter } from 'events';
+
+import { getEventMetadata as getEventMetadataOriginal } from '../lib/events';
 import type { ModuleArgs } from '../lib/types';
+import { init as initStories } from '../modules/stories';
+import type { API, State } from '../root';
+import type Store from '../store';
+import { docsEntries, mockEntries, navigationEntries, preparedEntries } from './mockStoriesEntries';
 
 const mockGetEntries = vi.fn();
 const fetch = vi.mocked(global.fetch);
@@ -160,6 +162,7 @@ describe('stories API', () => {
       expect(index!['design-system']).toMatchObject({
         type: 'root',
         name: 'Design System', // root name originates from `kind`, so it gets trimmed
+        tags: [],
       });
       expect(index!['design-system-some-component']).toMatchObject({
         type: 'component',
@@ -184,6 +187,7 @@ describe('stories API', () => {
             title: 'Root/First',
             name: 'Story 1',
             importPath: './path/to/root/first.ts',
+            tags: [],
           },
           ...mockEntries,
         },
@@ -205,6 +209,7 @@ describe('stories API', () => {
         type: 'root',
         id: 'root',
         children: ['root-first'],
+        tags: [],
       });
     });
     it('sets roots when showRoots = true', () => {
@@ -220,6 +225,7 @@ describe('stories API', () => {
             id: 'a-b--1',
             title: 'a/b',
             name: '1',
+            tags: [],
             importPath: './a/b.ts',
           },
         },
@@ -231,6 +237,7 @@ describe('stories API', () => {
         type: 'root',
         id: 'a',
         children: ['a-b'],
+        tags: [],
       });
       expect(index!['a-b']).toMatchObject({
         type: 'component',
@@ -277,6 +284,127 @@ describe('stories API', () => {
         parent: 'a',
         title: 'a',
         name: '1',
+      });
+    });
+    it('intersects story/docs tags to compute tags for component entries', () => {
+      const moduleArgs = createMockModuleArgs({});
+      const { api } = initStories(moduleArgs as unknown as ModuleArgs);
+      const { store } = moduleArgs;
+      api.setIndex({
+        v: 5,
+        entries: {
+          'a--1': {
+            type: 'story',
+            id: 'a--1',
+            title: 'a',
+            name: '1',
+            tags: ['shared', 'one-specific'],
+            importPath: './a.ts',
+          },
+          'a--2': {
+            type: 'story',
+            id: 'a--2',
+            title: 'a',
+            name: '2',
+            tags: ['shared', 'two-specific'],
+            importPath: './a.ts',
+          },
+        },
+      });
+      const { index } = store.getState();
+      // We need exact key ordering, even if in theory JS doesn't guarantee it
+      expect(Object.keys(index!)).toEqual(['a', 'a--1', 'a--2']);
+      expect(index!.a).toMatchObject({
+        type: 'component',
+        id: 'a',
+        tags: ['shared'],
+        children: ['a--1', 'a--2'],
+      });
+      expect(index!['a--1']).toMatchObject({
+        type: 'story',
+        id: 'a--1',
+        parent: 'a',
+        title: 'a',
+        name: '1',
+        tags: ['shared', 'one-specific'],
+      });
+      expect(index!['a--2']).toMatchObject({
+        type: 'story',
+        id: 'a--2',
+        parent: 'a',
+        title: 'a',
+        name: '2',
+        tags: ['shared', 'two-specific'],
+      });
+    });
+
+    it('intersects story/docs tags to compute tags for root and group entries', () => {
+      const moduleArgs = createMockModuleArgs({});
+      const { api } = initStories(moduleArgs as unknown as ModuleArgs);
+      const { store } = moduleArgs;
+      api.setIndex({
+        v: 5,
+        entries: {
+          'a-sampleone': {
+            type: 'story',
+            id: 'a-sampleone',
+            title: 'A/SampleOne',
+            name: '1',
+            tags: ['shared', 'one-specific'],
+            importPath: './a.ts',
+          },
+          'a-sampletwo': {
+            type: 'story',
+            id: 'a-sampletwo',
+            title: 'A/SampleTwo',
+            name: '2',
+            tags: ['shared', 'two-specific'],
+            importPath: './a.ts',
+          },
+          'a-embedded-othertopic': {
+            type: 'docs',
+            id: 'a-embedded-othertopic',
+            title: 'A/Embedded/OtherTopic',
+            name: '3',
+            tags: ['shared', 'embedded-docs-specific', 'other'],
+            storiesImports: [],
+            importPath: './embedded/other.mdx',
+          },
+          'a-embedded-extras': {
+            type: 'docs',
+            id: 'a-embedded-extras',
+            title: 'A/Embedded/Extras',
+            name: '3',
+            tags: ['shared', 'embedded-docs-specific', 'extras'],
+            storiesImports: [],
+            importPath: './embedded/extras.mdx',
+          },
+        },
+      });
+      const { index } = store.getState();
+      // We need exact key ordering, even if in theory JS doesn't guarantee it
+      expect(Object.keys(index!)).toEqual([
+        'a',
+        'a-sampleone',
+        'a-sampletwo',
+        'a-embedded',
+        'a-embedded-othertopic',
+        'a-embedded-extras',
+      ]);
+      // Acts as the root, so that the next level is a group we're testing.
+      expect(index!.a).toMatchObject({
+        type: 'root',
+        id: 'a',
+        children: ['a-sampleone', 'a-sampletwo', 'a-embedded'],
+        tags: ['shared'],
+      });
+      // The object of this test.
+      expect(index!['a-embedded']).toMatchObject({
+        type: 'group',
+        id: 'a-embedded',
+        parent: 'a',
+        name: 'Embedded',
+        tags: ['shared', 'embedded-docs-specific'],
       });
     });
     // Stories can get out of order for a few reasons -- see reproductions on
@@ -1451,6 +1579,7 @@ describe('stories API', () => {
             "name": "a",
             "parent": undefined,
             "renderLabel": undefined,
+            "tags": [],
             "type": "component",
           },
           "a--1": {
@@ -1461,6 +1590,7 @@ describe('stories API', () => {
             "parent": "a",
             "prepared": false,
             "renderLabel": undefined,
+            "tags": [],
             "title": "a",
             "type": "story",
           },
@@ -1472,6 +1602,7 @@ describe('stories API', () => {
             "parent": "a",
             "prepared": false,
             "renderLabel": undefined,
+            "tags": [],
             "title": "a",
             "type": "story",
           },
@@ -1516,6 +1647,7 @@ describe('stories API', () => {
             "name": "a",
             "parent": undefined,
             "renderLabel": undefined,
+            "tags": [],
             "type": "component",
           },
           "a--1": {
@@ -1526,6 +1658,7 @@ describe('stories API', () => {
             "parent": "a",
             "prepared": false,
             "renderLabel": undefined,
+            "tags": [],
             "title": "a",
             "type": "story",
           },
@@ -1557,6 +1690,7 @@ describe('stories API', () => {
             "name": "a",
             "parent": undefined,
             "renderLabel": undefined,
+            "tags": [],
             "type": "component",
           },
           "a--1": {
@@ -1567,6 +1701,7 @@ describe('stories API', () => {
             "parent": "a",
             "prepared": false,
             "renderLabel": undefined,
+            "tags": [],
             "title": "a",
             "type": "story",
           },
@@ -1578,6 +1713,7 @@ describe('stories API', () => {
             "parent": "a",
             "prepared": false,
             "renderLabel": undefined,
+            "tags": [],
             "title": "a",
             "type": "story",
           },
