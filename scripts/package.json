@@ -44,7 +44,7 @@
     "@fal-works/esbuild-plugin-global-externals": "^2.1.2",
     "@google-cloud/bigquery": "^6.2.1",
     "@octokit/graphql": "^5.0.6",
-    "@octokit/request": "^8.4.1",
+    "@octokit/request": "^9.2.1",
     "@polka/parse": "^1.0.0-next.28",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.9.1",
@@ -153,7 +153,7 @@
     "vitest": "^4.1.0",
     "wait-on": "^8.0.3",
     "window-size": "^1.1.1",
-    "yaml": "^2.8.1",
+    "yaml": "^2.8.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
